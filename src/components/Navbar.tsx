@@ -1,10 +1,15 @@
 'use client'
 import React, { useState } from 'react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import AuthModal from './AuthModal'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch, RootState } from '@/redux/store'
+import { Bike, Car, ChevronRight, LogOut, Menu, Truck, X } from 'lucide-react'
+import { signOut } from 'next-auth/react'
+import { setUserData } from '@/redux/userSlice'
 
 const NAV_Items = [
     "Home",
@@ -16,6 +21,24 @@ const NAV_Items = [
 function Navbar() {
     const pathName = usePathname()
     const [authOpen, setAuthOpen] = useState(false)
+
+    // Menu
+    const [menuOpen, setMenuOpen] = useState(false)
+
+    // Profile open close state
+    const [profileOpen, setProfileOpen] = useState(false)
+
+    // Get userData from redux
+    const { userData } = useSelector((state: RootState) => state.user)
+    const dispatch = useDispatch<AppDispatch>()
+
+    // Logout function
+    const handleLogOut = async () => {
+        await signOut({ redirect: false })
+        dispatch(setUserData(null))
+        setProfileOpen(false)
+    }
+
     return (
         <>
             <motion.div
@@ -42,12 +65,123 @@ function Navbar() {
                         })}
                     </div>
 
-                    <button className='px-4 py-1.5 rounded-full bg-white text-black text-sm cursor-pointer' onClick={() => setAuthOpen(true)}>
-                        Login
-                    </button>
+                    <div className='flex items-center gap-3 relative'>
+                        {/*  For Desktop */}
+                        <div className='hidden md:block relative'>
+                            {!userData ? (
+                                <button className='px-4 py-1.5 rounded-full bg-white text-black text-sm cursor-pointer' onClick={() => setAuthOpen(true)}>
+                                    Login
+                                </button>
+                            ) : (
+                                <>
+                                    <button className='w-11 h-11 rounded-full bg-white text-black font-bold cursor-pointer' onClick={() => setProfileOpen(p => !p)}>
+                                        {userData.name.charAt(0).toUpperCase()}
+                                    </button>
+
+                                    {/* Craete profile modal */}
+                                    <AnimatePresence>
+                                        {profileOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className='absolute top-14 right-0 w-[300px] bg-white text-black rounded-2xl shadow-xl border'
+                                            >
+                                                {/* User Details */}
+                                                <div className='p-5'>
+                                                    <p className='font-semibold text-lg'>{userData.name}</p>
+                                                    <p className='text-xs uppercase text-gray-500 mb-4'>{userData.role}</p>
+
+                                                    {/* If they not partner that time they see this button */}
+                                                    {userData.role !== "partner" && (
+                                                        <div className='w-full flex items-center gap-3 py-3 hover:bg-gray-100 rounded-xl font-semibold cursor-pointer'>
+                                                            <div className='flex -space-x-2'>
+                                                                <div className='w-6 h-6 rounded-full bg-black text-white flex items-center justify-center'>
+                                                                    <Bike size={14} />
+                                                                </div>
+                                                                <div className='w-6 h-6 rounded-full bg-black text-white flex items-center justify-center'>
+                                                                    <Car size={14} />
+                                                                </div>
+                                                                <div className='w-6 h-6 rounded-full bg-black text-white flex items-center justify-center'>
+                                                                    <Truck size={14} />
+                                                                </div>
+                                                            </div>
+                                                            Become A Partner
+                                                            <ChevronRight size={16} className='ml-auto' />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Log Out Button */}
+                                                    <button className='w-full flex items-center gap-3 py-2 hover:bg-red-100/100 hover:text-red-500 hover:border hover:border-red-500 rounded-xl mt-2 cursor-pointer font-semibold' onClick={handleLogOut}>
+                                                        <LogOut size={16} />
+                                                        Log Out
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </>
+                            )}
+                        </div>
+
+                        {/*  For Mobile Responsive */}
+                        <div className='md:hidden'>
+                            {!userData ? (
+                                <button className='px-4 py-1.5 rounded-full bg-white text-black text-sm cursor-pointer' onClick={() => setAuthOpen(true)}>
+                                    Login
+                                </button>
+                            ) : (
+                                <>
+                                    <button className='w-11 h-11 rounded-full bg-white text-black font-bold cursor-pointer' onClick={() => setProfileOpen(p => !p)}>
+                                        {userData.name.charAt(0).toUpperCase()}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        {/*  For Mobile Responsive Hamburger */}
+                        <button className='md:hidden text-white' onClick={() => setMenuOpen(p => !p)}>
+                            {menuOpen ? <X size={26} /> : <Menu size={26} />}
+                        </button>
+                    </div>
                 </div>
 
             </motion.div >
+
+            <AnimatePresence>
+                {menuOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.6 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMenuOpen(false)}
+                            className='fixed inset-0 bg-black z-30 md:hidden'
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 0.6, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.2 }}
+                            className='fixed top-[85px] left-1/2 -translate-x-1/2 w-[92%] bg-[#0B0B0B] rounded-2xl shadow-2xl z-40 md:hidden overflow-hidden'
+                        >
+                            <div className='flex flex-col divide-y divide-white/10'>
+                                {NAV_Items.map((i, index) => {
+                                    let href;
+                                    if (i === "Home") {
+                                        href = "/"
+                                    } else {
+                                        href = `/${i.toLowerCase()}`
+                                    }
+                                    const active = href === pathName
+                                    return <Link key={index} href={href} className="px-6 py-4 text-gray-300 hover:bg-white" > {i}</Link>
+                                })}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
             <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
         </>
     )

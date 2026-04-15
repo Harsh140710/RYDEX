@@ -1,9 +1,9 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import connectDB from "./lib/db"
-import { User } from "./models/user.model"
 import bcrypt from "bcryptjs"
 import Google from "next-auth/providers/google"
+import connectDB from "./lib/db"
+import { User } from "./models/user.model"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -21,8 +21,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     placeholder: "*****",
                 },
             },
-            async authorize(credentials, request) {
-                const email = credentials.email as string
+            async authorize(credentials) {
+                const email = credentials.email
                 const password = credentials.password as string
                 // Check user provide email or password
                 if (!email || !password) {
@@ -57,8 +57,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Google provider for Sign In
         Google({
-            clientId: process.env.AUTH_GOOGLE_ID,
-            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+            clientId: process.env.AUTH_GOOGLE_ID!,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET!,
         })
     ],
 
@@ -68,12 +68,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             // User create only when user come via Google Sign In
             if (account?.provider === "google") {
-
+                
                 // Connect to database for create user
                 await connectDB()
 
                 // Find user in databse and create them
-                const dbUser = await User.findOne({ email: user.email })
+                let dbUser = await User.findOne({ email: user.email })
                 if (!dbUser) {
                     await User.create({
                         name: user.name,
@@ -82,8 +82,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }
 
                 // Update user id and role in database with google Sign In
-                user.id = dbUser._id
-                user.role = dbUser.role
+                user.id = dbUser._id.toString()
+                user.role = dbUser.role || "user"
             }
 
             return true
@@ -91,10 +91,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Generate JWT token for particular USER
         async jwt({ token, user }) {
-            token.name = user.name,
-                token.id = user.id,
-                token.email = user.email,
-                token.role = user.role
+            if (user) {
+                token.name = user.name,
+                    token.id = user.id,
+                    token.email = user.email,
+                    token.role = user.role
+            }
 
             return token
         },
@@ -118,6 +120,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         error: "/signin"
     },
 
+    trustHost: true,
+
     // How many days user Log In that website
     session: {
         strategy: "jwt",
@@ -125,5 +129,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     // AUTH_SECRET for JWT verification
-    secret: process.env.AUTH_SECRET
+    secret: process.env.AUTH_SECRET!
 })
