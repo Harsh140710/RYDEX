@@ -1,5 +1,6 @@
 "use client";
-import { ArrowLeft, Bike, Car, Package, Truck } from "lucide-react";
+import axios from "axios";
+import { ArrowLeft, Bike, Car, CircleDashed, Package, Truck } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,6 +18,25 @@ function page() {
   const [vehicleType, setVehicleType] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleVehicle = async () => {
+    setError("");
+    try {
+      setLoading(true);
+      const { data } = await axios.post("/api/partner/onboarding/vehicle", {
+        type: vehicleType,
+        number: vehicleNumber,
+        vehicleModel,
+      });
+      setLoading(false);
+      console.log(data);
+    } catch (error: any) {
+      setError(error?.response?.data?.message ?? "Semething went wrong.");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -42,6 +62,13 @@ function page() {
             Add your vehicle information
           </p>
         </div>
+
+        {/* Show Error */}
+        {error && (
+          <p className="mt-3 text-red-500 border border-red-600 bg-red-500/10 h-11 flex items-center pl-5 rounded-xl">
+            {error}
+          </p>
+        )}
 
         <div className="mt-8 space-y-6">
           {/* Vehicle Type */}
@@ -89,7 +116,7 @@ function page() {
               type="text"
               id="vn"
               value={vehicleNumber}
-              onChange={(e) => setVehicleNumber(e.target.value)}
+              onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
               placeholder="GJ07AB1234"
               className="mt-2 w-full border-b border-gray-300 pb-2 text-sm focus:outline-none focus:border-black transition"
             />
@@ -112,11 +139,13 @@ function page() {
         </div>
 
         <motion.button
+          onClick={handleVehicle}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
+          disabled={loading}
           className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-40 transition cursor-pointer"
         >
-          Continue
+          {loading ? <CircleDashed className="text-white animate-spin"/> : "Continue"}
         </motion.button>
       </motion.div>
     </div>
