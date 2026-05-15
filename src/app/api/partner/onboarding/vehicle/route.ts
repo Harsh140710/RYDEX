@@ -40,14 +40,6 @@ export async function POST(req: Request) {
 
     const vehicleNumber = number.toUpperCase();
 
-    // Check vehicle number already exist or not
-    const duplicate = await Vehicle.findOne({ number: vehicleNumber });
-    if (duplicate)
-      return Response.json(
-        { message: "Vehicle Number Already Registered." },
-        { status: 400 },
-      );
-
     // Check vehicle updating or creating in one API
     let vehicle = await Vehicle.findOne({ owner: user._id });
     // Updating vehicle details
@@ -56,10 +48,31 @@ export async function POST(req: Request) {
       vehicle.number = vehicleNumber;
       vehicle.vehicleModel = vehicleModel;
       vehicle.status = "pending";
+
+      if (user.partnerOnBoardingSteps < 2) {
+        user.partnerOnBoardingSteps = 2;
+        user.partnerStatus = "pending";
+
+        await user.save();
+      } else {
+        user.partnerOnBoardingSteps = 3;
+        user.partnerStatus = "pending";
+
+        await user.save();
+      }
+
       await vehicle.save();
 
       return Response.json(vehicle, { status: 200 });
     }
+
+    // Check vehicle number already exist or not
+    const duplicate = await Vehicle.findOne({ number: vehicleNumber });
+    if (duplicate)
+      return Response.json(
+        { message: "Vehicle Number Already Registered." },
+        { status: 400 },
+      );
 
     // Creating new vehicle details
     vehicle = await Vehicle.create({
@@ -74,13 +87,14 @@ export async function POST(req: Request) {
       user.partnerOnBoardingSteps = 1;
     }
 
+    user.partnerStatus = "pending";
     // Update user roler USER to PARTNER
     user.role = "partner";
     await user.save();
 
     return Response.json(vehicle, { status: 201 });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return Response.json(
       { message: `Vehicle error ${error}` },
       { status: 500 },

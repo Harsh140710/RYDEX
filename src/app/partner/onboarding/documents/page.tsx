@@ -91,12 +91,19 @@ function page() {
               <p className="text-sm font-semibold">Aadhar / ID Proof</p>
               <p className="text-sm text-gray-500">Government issued ID</p>
             </div>
-            <div>
-              <span className="text-xs text-gray-400">Upload</span>
-              <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
-                <UploadCloud size={18} />
+
+            {docs.aadhar ? (
+              <span className="text-sm text-green-600 font-medium">
+                Uploaded
+              </span>
+            ) : (
+              <div>
+                <span className="text-xs text-gray-400">Upload</span>
+                <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
+                  <UploadCloud size={18} />
+                </div>
               </div>
-            </div>
+            )}
             <input
               type="file"
               accept="image/*,.pdf"
@@ -116,12 +123,18 @@ function page() {
               <p className="text-sm font-semibold">Driving License</p>
               <p className="text-sm text-gray-500">Valid Driving License</p>
             </div>
-            <div>
-              <span className="text-xs text-gray-400">Upload</span>
-              <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
-                <UploadCloud size={18} />
+            {docs.license ? (
+              <span className="text-sm text-green-600 font-medium">
+                Uploaded
+              </span>
+            ) : (
+              <div>
+                <span className="text-xs text-gray-400">Upload</span>
+                <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
+                  <UploadCloud size={18} />
+                </div>
               </div>
-            </div>
+            )}
             <input
               type="file"
               accept="image/*,.pdf"
@@ -141,12 +154,18 @@ function page() {
               <p className="text-sm font-semibold">Vehicle RC Book</p>
               <p className="text-sm text-gray-500">Registration Certificate</p>
             </div>
-            <div>
-              <span className="text-xs text-gray-400">Upload</span>
-              <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
-                <UploadCloud size={18} />
+            {docs.rc ? (
+              <span className="text-sm text-green-600 font-medium">
+                Uploaded
+              </span>
+            ) : (
+              <div>
+                <span className="text-xs text-gray-400">Upload</span>
+                <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center">
+                  <UploadCloud size={18} />
+                </div>
               </div>
-            </div>
+            )}
             <input
               type="file"
               accept="image/*,.pdf"

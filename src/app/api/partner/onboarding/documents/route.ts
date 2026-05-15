@@ -85,7 +85,13 @@ export async function POST(req: NextRequest) {
     );
 
     // increase partner on boarding step
-    if (user.partnerOnBoardingSteps < 2) user.partnerOnBoardingSteps = 2;
+    if (user.partnerOnBoardingSteps < 2) {
+      user.partnerOnBoardingSteps = 2;
+    } else {
+      user.partnerOnBoardingSteps = 3;
+    }
+
+    user.partnerStatus = "pending";
 
     await user.save();
 

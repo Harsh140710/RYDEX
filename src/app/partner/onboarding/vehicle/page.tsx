@@ -1,9 +1,16 @@
 "use client";
 import axios from "axios";
-import { ArrowLeft, Bike, Car, CircleDashed, Package, Truck } from "lucide-react";
+import {
+  ArrowLeft,
+  Bike,
+  Car,
+  CircleDashed,
+  Package,
+  Truck,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const VEHICLE = [
   { id: "bike", label: "Bike", icon: Bike, desc: "2 weehler" },
@@ -37,6 +44,20 @@ function page() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handleGetVehicle = async () => {
+      try {
+        const { data } = await axios.get("/api/partner/onboarding/vehicle");
+        setVehicleType(data.type)
+        setVehicleNumber(data.number)
+        setVehicleModel(data.vehicleModel)
+      } catch (error: any) {
+        console.log(error)
+      }
+    };
+    handleGetVehicle();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -145,7 +166,11 @@ function page() {
           disabled={loading}
           className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-40 transition cursor-pointer"
         >
-          {loading ? <CircleDashed className="text-white animate-spin"/> : "Continue"}
+          {loading ? (
+            <CircleDashed className="text-white animate-spin" />
+          ) : (
+            "Continue"
+          )}
         </motion.button>
       </motion.div>
     </div>

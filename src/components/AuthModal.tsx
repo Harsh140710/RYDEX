@@ -95,7 +95,7 @@ function AuthModal({ open, onClose }: propType) {
 
     // Handle Google login
     const handleGoogleLogin = async () => {
-        await signIn("google")
+        await signIn("google");
     }
 
     // OTP input

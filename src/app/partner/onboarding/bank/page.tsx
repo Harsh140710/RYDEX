@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
 function page() {
   const router = useRouter();
@@ -24,6 +26,20 @@ function page() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [upi, setUpi] = useState("");
 
+  // Validation all the fields
+  const sanitizedIfsc = ifsc.trim().toUpperCase();
+
+  const isNameValid = accountHolder.trim().length >= 3;
+
+  const isAccountValid = accountNumber.trim().length >= 9;
+
+  const isIfscValid = IFSC_REGEX.test(sanitizedIfsc);
+
+  const isMobileValid = mobileNumber.trim().length == 10;
+
+  const canSubmit =
+    isNameValid && isAccountValid && isIfscValid && isMobileValid;
+
   const handleBank = async () => {
     setLoading(true);
     setError("");
@@ -31,7 +47,7 @@ function page() {
       const { data } = await axios.post("/api/partner/onboarding/bank", {
         accountHolder,
         accountNumber,
-        ifsc,
+        ifsc: sanitizedIfsc,
         mobileNumber,
         upi,
       });
@@ -42,6 +58,23 @@ function page() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handleGetBank = async () => {
+      try {
+        const { data } = await axios.get("/api/partner/onboarding/bank");
+        console.log(data);
+        setAccountHolder(data.partnerBank.accountHolder || "");
+        setAccountNumber(data.partnerBank.accountNumber || "");
+        setIfsc(data.partnerBank.ifsc || "");
+        setMobileNumber(data.mobileNumber || "");
+        setUpi(data.partnerBank.upi || "");
+      } catch (error: any) {
+        console.log(error);
+      }
+    };
+    handleGetBank();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -89,11 +122,16 @@ function page() {
                 type="text"
                 id="ahn"
                 placeholder="As per bank records"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${!isNameValid && accountHolder.length > 0 ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-black"}`}
                 value={accountHolder}
                 onChange={(e) => setAccountHolder(e.target.value)}
               />
             </div>
+            {!isNameValid && accountHolder.length > 0 && (
+              <p className="mt-1 text-sm text-red-500">
+                Minimum 3 characters required
+              </p>
+            )}
           </div>
 
           {/* Account Number */}
@@ -109,11 +147,16 @@ function page() {
                 type="text"
                 id="an"
                 placeholder="Enter account number"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${!isAccountValid && accountNumber.length > 0 ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-black"}`}
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
               />
             </div>
+            {!isAccountValid && accountNumber.length > 0 && (
+              <p className="mt-1 text-sm text-red-500">
+                Account number must be at least 9 digits
+              </p>
+            )}
           </div>
 
           {/* IFSC code */}
@@ -132,11 +175,16 @@ function page() {
                 type="text"
                 id="ifsc"
                 placeholder="HDFC0001234"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
-                value={ifsc}
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${!isIfscValid && ifsc.length > 0 ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-black"}`}
+                value={ifsc.toUpperCase()}
                 onChange={(e) => setIfsc(e.target.value.toUpperCase())}
               />
             </div>
+            {!isIfscValid && ifsc.length > 0 && (
+              <p className="mt-1 text-sm text-red-500">
+                IFSC code is not valid
+              </p>
+            )}
           </div>
 
           {/* Mobile Number */}
@@ -152,11 +200,16 @@ function page() {
                 type="text"
                 id="mn"
                 placeholder="10 digit mobile number"
-                className="flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black"
+                className={`flex-1 border-b pb-2 text-sm focus:outline-none border-gray-300 focus:border-black ${!isMobileValid && mobileNumber.length > 0 ? "border-red-400 focus:border-red-500" : "border-gray-300 focus:border-black"}`}
                 value={mobileNumber}
                 onChange={(e) => setMobileNumber(e.target.value)}
               />
             </div>
+            {!isMobileValid && mobileNumber.length > 0 && (
+              <p className="mt-1 text-sm text-red-500">
+                Enter a valid 10-digit mobile number
+              </p>
+            )}
           </div>
 
           {/* UPI Id */}
@@ -193,7 +246,7 @@ function page() {
           whileTap={{ scale: 0.97 }}
           className="mt-8 w-full h-14 rounded-2xl bg-black text-white font-semibold disabled:opacity-40 cursor-pointer flex items-center justify-center"
           onClick={handleBank}
-          disabled={loading}
+          disabled={!canSubmit || loading}
         >
           {loading ? (
             <CircleDashed className="text-white animate-spin" />

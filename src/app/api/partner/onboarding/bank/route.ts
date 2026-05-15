@@ -53,9 +53,11 @@ export async function POST(req: NextRequest) {
     user.mobileNumber = mobileNumber;
 
     // Increase partner on boarding step
-    if (user.partnerOnBoardingSteps < 3) user.partnerOnBoardingSteps = 3;
+    user.partnerOnBoardingSteps = 3;
+    
+    user.partnerStatus = "pending";
 
-    user.save();
+    await user.save();
 
     return Response.json(partnerBank, { status: 201 });
   } catch (error) {
@@ -83,7 +85,11 @@ export async function GET(req: NextRequest) {
       return Response.json({ message: "User not found." }, { status: 404 });
 
     let partnerBank = await PartnerBank.findOne({ owner: user._id });
-    if (partnerBank) return Response.json(partnerBank, { status: 200 });
+    if (partnerBank)
+      return Response.json(
+        { mobileNumber: user.mobileNumber, partnerBank },
+        { status: 200 },
+      );
 
     return null;
   } catch (error) {

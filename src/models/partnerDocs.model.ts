@@ -1,6 +1,6 @@
 import mongoose, { models, Schema } from "mongoose";
 
-export interface IpartnerDocs extends Document {
+export interface IPartnerDocs extends Document {
   owner: mongoose.Types.ObjectId;
   aadharUrl: string;
   rcUrl: string;
@@ -11,7 +11,7 @@ export interface IpartnerDocs extends Document {
   updatedAt: Date;
 }
 
-const partnerDocsSchema = new Schema<IpartnerDocs>(
+const partnerDocsSchema = new Schema<IPartnerDocs>(
   {
     owner: {
       type: mongoose.Schema.Types.ObjectId,
